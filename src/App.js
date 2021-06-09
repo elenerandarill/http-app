@@ -3,6 +3,19 @@ import axios from "axios";
 import "./App.css";
 
 
+// Unexpected errors handling
+axios.interceptors.response.use(null, error => {
+  const expectedError = error.response && error.response.status >= 400 && error.response.status < 500;
+
+  if (!expectedError) {
+    console.log("Logging the error", error);
+    alert("An unexpected error occurred.");
+  }
+
+  return Promise.reject(error);
+});
+
+
 const apiEndpoint = "http://jsonplaceholder.typicode.com/posts";
 
 
@@ -53,7 +66,10 @@ class App extends Component {
     try {
       await axios.delete(apiEndpoint + "/" + post.id);
     } catch (ex) {
-      alert("Something failed while deleting a post!");
+      // Expected error
+      if (ex.response && ex.response.status === 404)
+        alert("This post has already been deleted.")
+
       this.setState({ posts: originalPosts });
     }
   };
